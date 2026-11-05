@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Random Walk Laboratory | Kyle Scheer</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+      :root {
+        color-scheme: dark;
+        --bg: #080d16;
+        --muted: #91a2b4;
+        --ink: #edf5fb;
+        --mint: #73f3c3;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 45% -20%, #1c3140, transparent 50%),
+          var(--bg);
+        color: var(--ink);
+        font-family: Manrope, system-ui, sans-serif;
+      }
+      .shell {
+        max-width: 1460px;
+        margin: auto;
+        padding: 28px 4vw;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin: 12px 0 18px;
+      }
+      h1 {
+        font-size: clamp(30px, 4vw, 46px);
+        letter-spacing: -0.05em;
+        line-height: 1;
+        margin: 0;
+      }
+      .sub {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .mono {
+        font:
+          10px "DM Mono",
+          monospace;
+        color: var(--muted);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(350px, 0.9fr);
+        gap: 14px;
+      }
+      .panel {
+        background: linear-gradient(145deg, #111d29, #0d1520);
+        border: 1px solid #293b4a;
+        border-radius: 15px;
+        overflow: hidden;
+      }
+      .stage {
+        padding: 14px;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 9px;
+      }
+      .walk {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        background: #08111b;
+        border-radius: 10px;
+        touch-action: none;
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 11px;
+        border-top: 1px solid #233342;
+      }
+      .performance-note {
+        flex: 1 0 100%;
+        margin: 2px 0 0;
+        padding: 8px 10px;
+        border-left: 3px solid #e7b65f;
+        border-radius: 5px;
+        background: #211e17;
+        color: #d8c9a7;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+      button {
+        background: #192a38;
+        color: var(--ink);
+        border: 1px solid #344b5b;
+        padding: 8px 11px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .primary {
+        background: var(--mint);
+        color: #071510;
+        border-color: var(--mint);
+      }
+      .ctl {
+        display: grid;
+        gap: 4px;
+      }
+      .ctl label {
+        font:
+          9px "DM Mono",
+          monospace;
+        color: var(--muted);
+      }
+      select,
+      input[type="number"] {
+        background: #13212d;
+        color: var(--ink);
+        border: 1px solid #344b5b;
+        border-radius: 7px;
+        padding: 7px;
+        font-size: 11px;
+      }
+      input[type="range"] {
+        accent-color: var(--mint);
+        width: 90px;
+      }
+      .side {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        align-content: start;
+      }
+      .box {
+        padding: 12px;
+      }
+      .wide {
+        grid-column: 1/-1;
+      }
+      .box h2 {
+        font-size: 12px;
+        margin: 0;
+      }
+      .big {
+        font-size: 23px;
+        font-weight: 700;
+      }
+      .small {
+        font:
+          10px "DM Mono",
+          monospace;
+        line-height: 1.7;
+        color: var(--muted);
+      }
+      .meter {
+        height: 4px;
+        background: #263443;
+        border-radius: 5px;
+        margin: 7px 0;
+        overflow: hidden;
+      }
+      .meter i {
+        display: block;
+        background: var(--mint);
+        height: 100%;
+        width: 0;
+        transition: width 0.08s linear;
+      }
+      .chart canvas {
+        display: block;
+        width: 100%;
+        height: 140px;
+      }
+      .info {
+        font-size: 11px;
+        color: #a6b6c4;
+        line-height: 1.6;
+        margin: 2px 0;
+      }
+      .inspiration {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 620px;
+        margin: 0 0 17px;
+        padding: 12px 16px;
+        border: 1px solid #344d5d;
+        border-left: 4px solid var(--mint);
+        border-radius: 12px;
+        background: linear-gradient(110deg, #142630, #101a25);
+        color: var(--ink);
+        text-decoration: none;
+      }
+      .inspiration strong {
+        font-size: 16px;
+      }
+      .inspiration small {
+        display: block;
+        font:
+          9px "DM Mono",
+          monospace;
+        letter-spacing: 0.1em;
+        color: #a4b6c4;
+      }
+      .inspiration .icon {
+        color: var(--mint);
+        font-size: 22px;
+      }
+      .foot {
+        border-top: 1px solid #263746;
+        text-align: center;
+        margin-top: 18px;
+        padding: 12px;
+        color: #879aaa;
+        font-size: 12px;
+      }
+      .foot a {
+        color: #b6c9d9;
+        text-decoration: none;
+      }
+      .foot img {
+        height: 27px;
+        vertical-align: middle;
+      }
+      dialog {
+        max-width: min(570px, 92vw);
+        background: #111d29;
+        color: var(--ink);
+        border: 1px solid #344b5b;
+        border-radius: 14px;
+        padding: 25px;
+        line-height: 1.65;
+      }
+      dialog::backdrop {
+        background: #03070dcc;
+        backdrop-filter: blur(4px);
+      }
+      dialog p {
+        font-size: 13px;
+        color: #b4c3cf;
+      }
+      dialog a {
+        color: #86c6ff;
+      }
+      .about {
+        margin-left: auto;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 550px) {
+        .shell {
+          padding: 18px 10px;
+        }
+        header {
+          align-items: start;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .side {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div>
+          <h1>Random Walk<br />Laboratory</h1>
+          <p class="sub">How paths randomly chosen evolve.</p>
+        </div>
+        <button class="about" id="about">About</button>
+      </header>
+      <a
+        class="inspiration"
+        href="https://pudding.cool/2026/11/pi/"
+        target="_blank"
+        rel="noopener"
+        ><span class="icon">✳</span
+        ><span
+          ><small>INSPIRED BY</small><strong>The Pudding · Pi ↗</strong></span
+        ></a
+      >
+      <div class="layout">
+        <section class="panel">
+          <div class="stage">
+            <div class="head">
+              <span>The walks</span><span class="mono" id="stepText"></span>
+            </div>
+            <canvas class="walk" id="walk"></canvas>
+          </div>
+          <div class="controls">
+            <button class="primary" id="play">Ⅱ Pause</button
+            ><button id="restart">↻ Restart</button>
+            <div class="ctl">
+              <label>VIEW</label
+              ><select id="view">
+                <option value="many">Many</option>
+                <option value="one">One</option>
+              </select>
+            </div>
+            <div class="ctl">
+              <label>DIRECTIONS</label
+              ><select id="mode">
+                <option value="4">4 · Cardinal</option>
+                <option value="8">8 · Cardinal + diagonal</option>
+                <option value="16">16 · Even angles</option>
+                <option value="36">36 · Even angles</option>
+                <option value="continuous" selected>Continuous angle</option>
+              </select>
+            </div>
+            <div class="ctl">
+              <label>MOVEMENT RULE</label
+              ><select id="rule">
+                <option value="free">Any heading</option>
+                <option value="turn">Minimum turn from reverse</option>
+                <option value="near">Avoid visited points nearby</option>
+              </select>
+            </div>
+            <div class="ctl">
+              <label>WALKS</label
+              ><select id="count">
+                <option>10</option>
+                <option>25</option>
+                <option selected>50</option>
+                <option>100</option>
+                <option>250</option>
+                <option>500</option>
+                <option>1000</option>
+              </select>
+            </div>
+            <div class="ctl">
+              <label>STEPS</label
+              ><input
+                id="steps"
+                type="number"
+                min="10"
+                max="5000"
+                step="100"
+                value="1000"
+                style="width: 72px"
+              />
+            </div>
+            <div class="ctl">
+              <label>PACE <span id="paceVal">4</span></label
+              ><input id="pace" type="range" min="1" max="15" value="4" />
+            </div>
+            <button id="fit">Fit</button>
+            <p class="performance-note" role="note">
+              More walks, steps, and directions take longer to simulate and
+              draw. Your browser can only handle so much; large settings may
+              slow things down.
+            </p>
+          </div>
+        </section>
+        <aside class="side">
+          <section class="panel box wide">
+            <div class="head">
+              <span>Progress</span><span class="mono" id="status"></span>
+            </div>
+            <div class="big" id="percent">0%</div>
+            <div class="meter"><i id="meter"></i></div>
+            <div class="small">
+              <span id="walkN"></span> walks · <span id="stepN"></span> ·
+              expected σ per axis ≈ <span id="sigma"></span>
+            </div>
+          </section>
+          <section class="panel box wide" id="ruleControls" hidden>
+            <div class="head"><h2>Rule threshold</h2></div>
+            <div class="controls" style="padding: 0; border: 0">
+              <div class="ctl" id="turnCtl">
+                <label
+                  >MIN TURN FROM EXACT REVERSE · DEGREES
+                  <span id="turnVal">30</span></label
+                ><input id="turn" type="range" min="5" max="120" value="30" />
+              </div>
+              <div class="ctl" id="nearCtl">
+                <label
+                  >KEEP THIS FAR FROM OLD POINTS · UNITS
+                  <span id="nearVal">1.00</span></label
+                ><input
+                  id="near"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="1"
+                />
+              </div>
+            </div>
+          </section>
+          <section class="panel box chart">
+            <div class="head"><h2>X displacement</h2></div>
+            <canvas id="hx"></canvas>
+          </section>
+          <section class="panel box chart">
+            <div class="head"><h2>Y displacement</h2></div>
+            <canvas id="hy"></canvas>
+          </section>
+          <section class="panel box chart">
+            <div class="head"><h2>Endpoint distance</h2></div>
+            <canvas id="rad"></canvas>
+          </section>
+          <section class="panel box chart">
+            <div class="head">
+              <h2>Endpoint cloud</h2>
+              <span class="mono">X VS Y</span>
+            </div>
+            <canvas id="cloud" style="height: 170px; width: 100%"></canvas>
+          </section>
+          <section class="panel box wide" id="lengthPanel" hidden>
+            <div class="head">
+              <h2>Walk lengths</h2>
+              <span class="mono">STEPS BEFORE TRAPPED</span>
+            </div>
+            <canvas
+              id="lengthChart"
+              style="height: 130px; width: 100%"
+            ></canvas>
+          </section>
+          <section class="panel box wide">
+            <div class="head"><h2>Endpoint statistics</h2></div>
+            <div id="stats" class="small"></div>
+          </section>
+          <section class="panel box wide">
+            <div class="head"><h2>What this model means</h2></div>
+            <p id="explain" class="info"></p>
+          </section>
+        </aside>
+      </div>
+      <footer class="foot">
+        Made by
+        <a href="https://www.kylescheer.com" target="_blank" rel="noopener"
+          >Kyle Scheer</a
+        >
+        ·
+        <a
+          href="https://github.com/kyletscheer/mentalmath"
+          target="_blank"
+          rel="noopener"
+          >View code</a
+        >
+        ·
+        <a href="https://ko-fi.com/scheerapps" target="_blank" rel="noopener"
+          ><img
+            src="https://storage.ko-fi.com/cdn/kofi5.png?v=6"
+            alt="Support on Ko-fi"
+        /></a>
+      </footer>
+    </main>
+    <dialog id="aboutDialog">
+      <button id="close" style="float: right">×</button>
+      <h2>About Random Walk Laboratory</h2>
+      <p>
+        I made this tool after reading
+        <a href="https://pudding.cool/2026/11/pi/" target="_blank"
+          >this Pudding piece about pi π</a
+        >. Each dot may start from 0,0 but as random chance dictates where they
+        walk, where will they end up? Explore how repeated random steps create large-scale patterns. Each step is 1 unit in length.
+      </p>
+      <p>
+        <b>“Any heading”</b> allows the dot to move in any direction, with all angles equally likely. This is the most basic random walk.
+      </p>
+      <p>
+        <b>“Minimum turn from reverse”</b> doesn't allow the dot to go directly
+        back in the direction it just came from. Ever onward!
+      </p>
+      <p>
+        <b>“Avoid visited points nearby”</b> tells the dots to avoid going
+        anywhere they have already been. As you experiment, you'll see this can
+        result in dots that become trapped before they reach their total steps,
+        as the only way to move is to where they have already been.
+      </p>
+      <p>The color of each dot is made to more easily distinguish between different paths.</p>
+      <p>
+        Learn more:
+        <a
+          href="https://www.mit.edu/~kardar/teaching/projects/chemotaxis(AndreaSchmidt)/random.htm"
+          target="_blank"
+          rel="noopener"
+          >MIT random walk introduction</a
+        >
+        ·
+        <a
+          href="https://en.wikipedia.org/wiki/Random_walk"
+          target="_blank"
+          rel="noopener"
+          >Wikipedia</a
+        >.
+      </p>
+    </dialog>
+    <script>
+      const canvas = document.querySelector("#walk"),
+        ctx = canvas.getContext("2d"),
+        palette = [
+          "#72f2c1",
+          "#75b5ff",
+          "#ffbd75",
+          "#d69aff",
+          "#ff7c9c",
+          "#a8e66b",
+          "#58dbe5",
+          "#f4e16a",
+        ];
+      let walks = [],
+        step = 0,
+        limit = 1000,
+        rate = 4,
+        running = true,
+        last = 0,
+        zoom = 1,
+        panX = 0,
+        panY = 0,
+        drag = null;
+      const $ = (s) => document.querySelector(s);
+      function mode() {
+        return $("#mode").value;
+      }
+      function angles() {
+        let m = mode();
+        if (m === "continuous") return null;
+        let n = +m;
+        return Array.from({ length: n }, (_, i) => (i * 2 * Math.PI) / n);
+      }
+      function delta(a) {
+        return [Math.cos(a), Math.sin(a)];
+      }
+      function fit(c) {
+        let d = Math.min(devicePixelRatio || 1, 2),
+          w = Math.max(1, Math.min(c.clientWidth, 3000 / d)),
+          h = Math.max(1, Math.min(c.clientHeight, 3000 / d));
+        c.width = Math.round(w * d);
+        c.height = Math.round(h * d);
+        return [w, h, d];
+      }
+      function init() {
+        limit = Math.max(10, Math.min(5000, +$("#steps").value || 1000));
+        $("#steps").value = limit;
+        walks = Array.from({ length: +$("#count").value }, (_, i) => ({
+          x: 0,
+          y: 0,
+          a: null,
+          pts: [[0, 0]],
+          alive: true,
+          color: palette[i % palette.length],
+        }));
+        step = 0;
+        running = true;
+        update();
+        draw();
+      }
+      function heading(p) {
+        const angs = angles(),
+          rule = $("#rule").value,
+          threshold = (+$(`#turn`).value * Math.PI) / 180,
+          radius = +$(`#near`).value;
+        for (let tries = 0; tries < 300; tries++) {
+          let a = angs
+            ? angs[(Math.random() * angs.length) | 0]
+            : Math.random() * 2 * Math.PI;
+          if (rule === "turn" && p.a !== null) {
+            let diff = Math.abs(
+              Math.atan2(
+                Math.sin(a - p.a - Math.PI),
+                Math.cos(a - p.a - Math.PI),
+              ),
+            );
+            if (diff < threshold) continue;
+          }
+          let [dx, dy] = delta(a),
+            nx = p.x + dx,
+            ny = p.y + dy;
+          if (
+            rule === "near" &&
+            p.pts.some(([x, y]) => Math.hypot(nx - x, ny - y) < radius - 1e-9)
+          )
+            continue;
+          return [a, nx, ny];
+        }
+        return null;
+      }
+      function tick() {
+        for (let t = 0; t < rate && step < limit; t++) {
+          for (const p of walks) {
+            if (!p.alive || p.pts.length > limit) continue;
+            let q = heading(p);
+            if (!q) {
+              p.alive = false;
+              continue;
+            }
+            let [a, x, y] = q;
+            p.a = a;
+            p.x = x;
+            p.y = y;
+            p.pts.push([x, y]);
+          }
+          step++;
+        }
+        if (
+          step >= limit ||
+          walks.every((p) => !p.alive || p.pts.length > limit)
+        )
+          running = false;
+        update();
+        draw();
+        if (!running) $("#play").textContent = "▶ Play";
+      }
+      function update() {
+        let pct = (100 * step) / limit;
+        $("#stepText").textContent = `STEP ${step} / ${limit}`;
+        $("#percent").textContent = Math.floor(pct) + "%";
+        $("#meter").style.width = pct + "%";
+        $("#walkN").textContent = walks.length;
+        $("#stepN").textContent = `${step} / ${limit} steps`;
+        $("#sigma").textContent = Math.sqrt(limit / 2).toFixed(2);
+        $("#status").textContent = running
+          ? "RUNNING"
+          : step >= limit
+            ? "COMPLETE"
+            : "PAUSED";
+        $("#ruleControls").hidden = $("#rule").value === "free";
+        $("#turnCtl").hidden = $("#rule").value !== "turn";
+        $("#nearCtl").hidden = $("#rule").value !== "near";
+        let m = mode();
+        $("#explain").textContent =
+          m === "continuous"
+            ? "Continuous angle: every heading from 0° to 360° is equally likely."
+            : `${m} evenly spaced headings, each equally likely.`;
+        $("#explain").textContent +=
+          ` Every step is unit length. ${$("#rule").value === "turn" ? `Turns within ${$("#turn").value}° of a U-turn are disallowed.` : $("#rule").value === "near" ? `Candidate destinations must stay at least ${$("#near").value} units from earlier path points.` : "No directional restriction."}`;
+        stats();
+      }
+      function summary(v) {
+        let a = [...v].sort((x, y) => x - y),
+          n = a.length,
+          m = a.reduce((s, x) => s + x, 0) / n;
+        return {
+          min: a[0],
+          max: a[n - 1],
+          mean: m,
+          median: n % 2 ? a[n >> 1] : (a[n / 2 - 1] + a[n / 2]) / 2,
+          sd: Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / n),
+        };
+      }
+      function stats() {
+        let xs = walks.map((p) => p.x),
+          ys = walks.map((p) => p.y),
+          rr = walks.map((p) => Math.hypot(p.x, p.y)),
+          f = (o) =>
+            `min ${o.min.toFixed(2)} · max ${o.max.toFixed(2)} · mean ${o.mean.toFixed(2)} · median ${o.median.toFixed(2)} · SD ${o.sd.toFixed(2)}`;
+        $("#stats").innerHTML =
+          `X: ${f(summary(xs))}<br>Y: ${f(summary(ys))}<br>Radius: ${f(summary(rr))}${$("#rule").value === "near" ? `<br>Mean path length ${(walks.reduce((s, p) => s + p.pts.length - 1, 0) / walks.length).toFixed(1)} · reached limit ${walks.filter((p) => p.pts.length > limit).length}/${walks.length}` : ""}`;
+      }
+      function hist(id, values, color, nonnegative = false) {
+        let c = $(id),
+          [w, h, d] = fit(c),
+          g = c.getContext("2d");
+        g.setTransform(d, 0, 0, d, 0, 0);
+        g.clearRect(0, 0, w, h);
+        let L = 34,
+          T = 6,
+          B = 23,
+          PW = w - L - 5,
+          PH = h - T - B,
+          ext = Math.max(1, ...values.map(Math.abs)),
+          lo = nonnegative ? 0 : -Math.ceil(ext / 5) * 5,
+          hi = Math.max(1, Math.ceil(ext / 5) * 5);
+        if (hi <= lo) hi = lo + 1;
+        let bins = Array(31).fill(0);
+        values.forEach(
+          (v) =>
+            bins[
+              Math.max(0, Math.min(30, Math.floor(((v - lo) / (hi - lo)) * 30)))
+            ]++,
+        );
+        let top = Math.max(1, ...bins);
+        g.font = "9px 'DM Mono',monospace";
+        g.fillStyle = "#91a2b4";
+        g.strokeStyle = "#293b4b";
+        for (let i = 0; i <= 2; i++) {
+          let y = T + (PH * i) / 2;
+          g.beginPath();
+          g.moveTo(L, y);
+          g.lineTo(w - 5, y);
+          g.stroke();
+          g.textAlign = "right";
+          g.textBaseline = "middle";
+          g.fillText(Math.round((top * (2 - i)) / 2), L - 4, y);
+        }
+        bins.forEach((v, i) => {
+          g.fillStyle = color;
+          g.globalAlpha = 0.8;
+          let bh = (PH * v) / top;
+          g.fillRect(L + (i * PW) / 31, T + PH - bh, (PW / 31) * 0.82, bh);
+        });
+        g.globalAlpha = 1;
+        g.textAlign = "center";
+        g.textBaseline = "top";
+        [lo, (lo + hi) / 2, hi].forEach((x) =>
+          g.fillText(
+            Math.round(x),
+            L + (PW * (x - lo)) / (hi - lo),
+            T + PH + 3,
+          ),
+        );
+      }
+      function drawCloud() {
+        let c = $("#cloud"),
+          [w, h, d] = fit(c),
+          g = c.getContext("2d");
+        g.setTransform(d, 0, 0, d, 0, 0);
+        g.clearRect(0, 0, w, h);
+        let ex =
+            Math.max(
+              2,
+              ...walks.flatMap((p) => [Math.abs(p.x), Math.abs(p.y)]),
+            ) + 1,
+          L = 28,
+          T = 7,
+          P = Math.min(w - L - 8, h - 24),
+          s = P / (2 * ex);
+        g.strokeStyle = "#293b4b";
+        g.beginPath();
+        g.moveTo(L, T + P / 2);
+        g.lineTo(L + P, T + P / 2);
+        g.moveTo(L + P / 2, T);
+        g.lineTo(L + P / 2, T + P);
+        g.stroke();
+        walks.forEach((p) => {
+          g.fillStyle = p.color;
+          g.beginPath();
+          g.arc(L + P / 2 + p.x * s, T + P / 2 - p.y * s, 2.5, 0, 7);
+          g.fill();
+        });
+        g.font = "9px 'DM Mono',monospace";
+        g.fillStyle = "#91a2b4";
+        g.textAlign = "center";
+        [-ex, 0, ex].forEach((v) =>
+          g.fillText(Math.round(v), L + (P * (v + ex)) / (2 * ex), T + P + 5),
+        );
+      }
+      function draw() {
+        let [w, h, d] = fit(canvas);
+        ctx.setTransform(d, 0, 0, d, 0, 0);
+        ctx.fillStyle = "#08111b";
+        ctx.fillRect(0, 0, w, h);
+        let ps = $("#view").value === "one" ? walks.slice(0, 1) : walks,
+          maxExtent = 4;
+        for (const p of ps) {
+          for (const [x, y] of p.pts) {
+            maxExtent = Math.max(maxExtent, Math.abs(x), Math.abs(y));
+          }
+        }
+        let ex = maxExtent + 2,
+          s = ((Math.min(w, h) * 0.45) / ex) * zoom,
+          ox = w / 2 + panX,
+          oy = h / 2 + panY,
+          gap = Math.max(18, Math.min(48, s * 5));
+        ctx.strokeStyle = "#142433";
+        ctx.beginPath();
+        for (let x = ((ox % gap) + gap) % gap; x < w; x += gap) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+        }
+        for (let y = ((oy % gap) + gap) % gap; y < h; y += gap) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = "#3c5365";
+        ctx.beginPath();
+        ctx.moveTo(ox, 0);
+        ctx.lineTo(ox, h);
+        ctx.moveTo(0, oy);
+        ctx.lineTo(w, oy);
+        ctx.stroke();
+        ps.forEach((p) => {
+          ctx.beginPath();
+          p.pts.forEach(([x, y], i) =>
+            i ? ctx.lineTo(ox + x * s, oy - y * s) : ctx.moveTo(ox, oy),
+          );
+          ctx.strokeStyle = p.color;
+          ctx.globalAlpha = 0.8;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(ox + p.x * s, oy - p.y * s, 2.5, 0, 7);
+          ctx.fill();
+        });
+        hist(
+          "#hx",
+          walks.map((p) => p.x),
+          "#71aaff",
+        );
+        hist(
+          "#hy",
+          walks.map((p) => p.y),
+          "#d69aff",
+        );
+        hist(
+          "#rad",
+          walks.map((p) => Math.hypot(p.x, p.y)),
+          "#73f3c3",
+          true,
+        );
+        drawCloud();
+        let lp = $("#lengthPanel"),
+          show = $("#rule").value === "near";
+        lp.hidden = !show;
+        if (show)
+          hist(
+            "#lengthChart",
+            walks.map((p) => p.pts.length - 1),
+            "#ffbd75",
+            true,
+          );
+      }
+      function loop(t) {
+        if (running && t - last > 40) {
+          tick();
+          last = t;
+        }
+        requestAnimationFrame(loop);
+      }
+      $("#play").onclick = () => {
+        if (step >= limit) init();
+        else running = !running;
+        $("#play").textContent = running ? "Ⅱ Pause" : "▶ Play";
+        update();
+      };
+      $("#restart").onclick = init;
+      ["mode", "steps", "count", "rule"].forEach(
+        (id) => ($("#" + id).onchange = init),
+      );
+      $("#pace").oninput = (e) => {
+        rate = +e.target.value;
+        $("#paceVal").textContent = rate;
+      };
+      $("#turn").oninput = (e) => {
+        $("#turnVal").textContent = e.target.value;
+        update();
+      };
+      $("#near").oninput = (e) => {
+        $("#nearVal").textContent = e.target.value;
+        update();
+      };
+      $("#view").onchange = draw;
+      $("#fit").onclick = () => {
+        zoom = 1;
+        panX = 0;
+        panY = 0;
+        draw();
+      };
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          zoom = Math.max(
+            0.5,
+            Math.min(8, zoom * (e.deltaY < 0 ? 1.15 : 0.87)),
+          );
+          draw();
+        },
+        { passive: false },
+      );
+      canvas.addEventListener("pointerdown", (e) => {
+        drag = [e.clientX, e.clientY, panX, panY];
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener("pointermove", (e) => {
+        if (drag) {
+          panX = drag[2] + e.clientX - drag[0];
+          panY = drag[3] + e.clientY - drag[1];
+          draw();
+        }
+      });
+      canvas.addEventListener("pointerup", () => (drag = null));
+      window.addEventListener("resize", draw);
+      $("#about").onclick = () => $("#aboutDialog").showModal();
+      $("#close").onclick = () => $("#aboutDialog").close();
+      init();
+      requestAnimationFrame(loop);
+    </script>
+    <script>
+      const thresholdPanel = document.querySelector("#ruleControls"),
+        ruleControl = document.querySelector("#rule").parentElement,
+        nearInput = document.querySelector("#near"),
+        ruleSelect = document.querySelector("#rule"),
+        modeSelect = document.querySelector("#mode");
+      ruleControl.insertAdjacentElement("afterend", thresholdPanel);
+      thresholdPanel.className = "threshold-inline";
+      thresholdPanel.style.cssText =
+        "flex:1 0 100%;padding:7px 10px;margin:0;border-radius:9px;background:#0e1822;box-shadow:none";
+      thresholdPanel.querySelector(".head").style.display = "none";
+      thresholdPanel.querySelector(".controls").style.display = "flex";
+      thresholdPanel.querySelector(".controls").style.gap = "16px";
+      nearInput.min = "0";
+      nearInput.max = "1";
+      nearInput.step = "0.01";
+      nearInput.value = "1";
+      document.querySelector("#nearVal").textContent = "1.00";
+      nearInput.oninput = () => {
+        document.querySelector("#nearVal").textContent =
+          (+nearInput.value).toFixed(2);
+        if (ruleSelect.value === "near") init();
+      };
+      function adjustRuleOptions() {
+        let high = modeSelect.value === "continuous" || +modeSelect.value > 4;
+        [...ruleSelect.options].forEach((o) => {
+          if (o.value === "turn" || o.value === "near") o.hidden = !high;
+        });
+        if (!high && ["turn", "near"].includes(ruleSelect.value)) {
+          ruleSelect.value = "free";
+          init();
+        }
+        let ruleControls = document.querySelector("#ruleControls");
+        ruleControls.hidden = !high || ruleSelect.value === "free";
+      }
+      modeSelect.addEventListener("change", adjustRuleOptions);
+      ruleSelect.addEventListener("change", adjustRuleOptions);
+      adjustRuleOptions();
+    </script>
+  </body>
+</html>
