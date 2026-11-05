@@ -32,18 +32,33 @@
       header {
         display: flex;
         justify-content: space-between;
-        align-items: end;
-        margin: 12px 0 18px;
+        align-items: center;
+        gap: 18px;
+        margin: 12px 0 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        min-width: 0;
       }
       h1 {
-        font-size: clamp(30px, 4vw, 46px);
+        font-size: clamp(24px, 3vw, 34px);
         letter-spacing: -0.05em;
         line-height: 1;
         margin: 0;
+        white-space: nowrap;
       }
       .sub {
         font-size: 13px;
         color: var(--muted);
+        margin: 0;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
       }
       .mono {
         font:
@@ -197,31 +212,30 @@
       .inspiration {
         display: flex;
         align-items: center;
-        gap: 12px;
-        max-width: 620px;
-        margin: 0 0 17px;
-        padding: 12px 16px;
+        gap: 8px;
+        margin: 0;
+        padding: 6px 10px;
         border: 1px solid #344d5d;
-        border-left: 4px solid var(--mint);
-        border-radius: 12px;
+        border-left: 3px solid var(--mint);
+        border-radius: 9px;
         background: linear-gradient(110deg, #142630, #101a25);
         color: var(--ink);
         text-decoration: none;
       }
       .inspiration strong {
-        font-size: 16px;
+        font-size: 12px;
       }
       .inspiration small {
         display: block;
         font:
-          9px "DM Mono",
+          8px "DM Mono",
           monospace;
         letter-spacing: 0.1em;
         color: #a4b6c4;
       }
       .inspiration .icon {
         color: var(--mint);
-        font-size: 22px;
+        font-size: 16px;
       }
       .foot {
         border-top: 1px solid #263746;
@@ -259,12 +273,12 @@
       dialog a {
         color: #86c6ff;
       }
-      .about {
-        margin-left: auto;
-      }
       @media (max-width: 900px) {
         .layout {
           grid-template-columns: 1fr;
+        }
+        header {
+          flex-wrap: wrap;
         }
       }
       @media (max-width: 550px) {
@@ -272,9 +286,33 @@
           padding: 18px 10px;
         }
         header {
-          align-items: start;
+          align-items: flex-start;
+          flex-direction: row;
+          justify-content: space-between;
+          gap: 10px;
+        }
+        .brand {
+          align-items: flex-start;
           flex-direction: column;
-          gap: 8px;
+          gap: 3px;
+        }
+        h1 {
+          white-space: normal;
+          font-size: 25px;
+        }
+        .sub {
+          font-size: 11px;
+        }
+        .header-right {
+          align-items: flex-end;
+          flex-direction: column-reverse;
+          gap: 5px;
+        }
+        .inspiration {
+          padding: 5px 7px;
+        }
+        .inspiration strong {
+          font-size: 10px;
         }
         .side {
           grid-template-columns: 1fr;
@@ -285,22 +323,24 @@
   <body>
     <main class="shell">
       <header>
-        <div>
-          <h1>Random Walk<br />Laboratory</h1>
+        <div class="brand">
+          <h1>Random Walk Laboratory</h1>
           <p class="sub">How paths randomly chosen evolve.</p>
         </div>
-        <button class="about" id="about">About</button>
+        <div class="header-right">
+          <a
+            class="inspiration"
+            href="https://pudding.cool/2026/11/pi/"
+            target="_blank"
+            rel="noopener"
+            ><span class="icon">✳</span
+            ><span
+              ><small>INSPIRED BY</small><strong>The Pudding · Pi ↗</strong></span
+            ></a
+          >
+          <button id="about">About</button>
+        </div>
       </header>
-      <a
-        class="inspiration"
-        href="https://pudding.cool/2026/11/pi/"
-        target="_blank"
-        rel="noopener"
-        ><span class="icon">✳</span
-        ><span
-          ><small>INSPIRED BY</small><strong>The Pudding · Pi ↗</strong></span
-        ></a
-      >
       <div class="layout">
         <section class="panel">
           <div class="stage">
